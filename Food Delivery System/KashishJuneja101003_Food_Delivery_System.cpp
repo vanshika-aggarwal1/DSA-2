@@ -33,7 +33,7 @@ public:
 
 class User{
     string name, username, password, email, phone, address;
-    
+
 public:
     // Parameterized Constructor
     User(string name, string username, string password, string email, string phone, string address) : name(name), username(username), password(password), email(email), phone(phone), address(address) {}
@@ -69,7 +69,14 @@ class FoodDeliverySystem {
 private:
     unordered_map<string, User> users;  // stores users by their username
     unordered_map<string, Restaurant> restaurants;
-    unordered_map<int, string> orders;
+    struct Order {
+        int id;
+        string restaurantName;
+        vector<string> items;
+        double totalPrice;
+        string status; // Status of the order
+    };
+    unordered_map<int, Order> orders;
     int orderIdCounter = 100;
 
 public:
@@ -87,13 +94,13 @@ public:
     bool loginUser(string username) {
         if (users.find(username) != users.end()) {
             string password;
-            cout<<"Enter password: ";
+            cout << "Enter password: ";
             getline(cin, password);
 
             if(users[username].validatePassword(password)){
                 cout << "\nLogin successful!" << endl;
             } else{
-                cout<<"\nIncorrect Password";
+                cout << "\nIncorrect Password" << endl;
             }
 
             return true;
@@ -133,9 +140,7 @@ public:
                 }
             }
             int orderId = orderIdCounter++;
-            orders[orderId] = restaurantName + " | " + "Items: ";
-            for (const auto& item : items) orders[orderId] += item + " ";
-            orders[orderId] += "| Total: $" + to_string(totalPrice);
+            orders[orderId] = {orderId, restaurantName, items, totalPrice, "Placed"};
             cout << "Order placed successfully. Order ID: " << orderId << endl;
         } else {
             cout << "Restaurant not found." << endl;
@@ -148,8 +153,26 @@ public:
         } else {
             cout << "Order History:" << endl;
             for (const auto& entry : orders) {
-                cout << "Order ID: " << entry.first << " | Details: " << entry.second << endl;
+                cout << "Order ID: " << entry.first << " | Restaurant: " << entry.second.restaurantName
+                     << " | Status: " << entry.second.status << " | Total: $" << entry.second.totalPrice << endl;
             }
+        }
+    }
+
+    void trackOrderStatus(int orderId) {
+        if (orders.find(orderId) != orders.end()) {
+            cout << "Order ID: " << orderId << " | Status: " << orders[orderId].status << endl;
+        } else {
+            cout << "Order not found." << endl;
+        }
+    }
+
+    void updateOrderStatus(int orderId, string newStatus) {
+        if (orders.find(orderId) != orders.end()) {
+            orders[orderId].status = newStatus;
+            cout << "Order ID " << orderId << " status updated to '" << newStatus << "'." << endl;
+        } else {
+            cout << "Order not found." << endl;
         }
     }
 
@@ -176,46 +199,18 @@ int main() {
 
     system.registerUser(u1);
 
-    // u1.getName();
-    // u1.getemail();
-    // u1.getAddress();
-    // u1.getPassword();
+    system.addRestaurant("Pizza Palace", "Italian");
+    system.addMenuItem("Pizza Palace", "Margherita Pizza", 10);
+    system.addMenuItem("Pizza Palace", "Garlic Bread", 5);
 
-    // system.addRestaurant("Pizza Palace", "Italian");
-    // system.addMenuItem("Pizza Palace", "Margherita Pizza", 10);
-    // system.addMenuItem("Pizza Palace", "Garlic Bread", 5);
+    vector<string> items = {"Margherita Pizza", "Garlic Bread"};
+    system.placeOrder("Pizza Palace", items);
 
-    // cout << endl;
-    // system.viewRestaurantMenu("Pizza Palace");
-    
-    // Get username and password from user
-    string username;
-    cout<<"Enter username: ";
-    getline(cin, username);
-    
+    system.viewOrderHistory();
 
-    // Check if user is new or already resistered
-    if(system.loginUser(username)){
-        // Ordering system
-    } else{
-        string password, name, email, phone, address;
-        cout<<"Enter pa ssword: ";
-        getline(cin, password);
-        
-        cout<<"Enter name: ";
-        getline(cin, name);
+    system.trackOrderStatus(100);
+    system.updateOrderStatus(100, "Out for Delivery");
+    system.trackOrderStatus(100);
 
-        cout<<"Enter email: ";
-        getline(cin, email);
-        
-        cout<<"Enter phone: ";
-        getline(cin, phone);
-        
-        cout<<"Enter address: ";
-        getline(cin, address);
-
-        User newUser(name, username, password, email, phone, address);
-        system.registerUser(newUser);
-    }
     return 0;
 }
